@@ -95,7 +95,31 @@ class WorkMenu:
             await query.edit_message_text("Папка не найдена или уже недоступна.")
             return ConversationHandler.END
 
-        # 3.2 — Записываем в status.txt
+        context.user_data["my_folders"].append(selected_dir)
+        await query.edit_message_text("Отправляю тебе задачу, секунду...")
+
+        folder_path = f"photos/{selected_dir}"
+        jpg_files = sorted([f for f in os.listdir(folder_path) if f.lower().endswith((".jpg", ".png", ".webp", ".bmp", "jpeg"))])
+        comment_path = os.path.join(folder_path, "comment.txt")
+
+        if jpg_files:
+            from telegram import InputMediaPhoto
+            media_group = [InputMediaPhoto(open(os.path.join(folder_path, img), "rb")) for img in jpg_files]
+            try:
+                await context.bot.send_media_group(chat_id=query.message.chat_id, media=media_group)
+            except:
+                await context.bot.send_message(chat_id=query.message.chat_id, text="Что-то пошло не так. Возвращаю в меню")
+                await MainMenu.show(update, context)
+                return None
+
+        if os.path.exists(comment_path):
+            with open(comment_path, "r", encoding="utf-8") as f:
+                comment = f.read()
+            if comment:
+                await context.bot.send_message(chat_id=query.message.chat_id, text=comment)
+            else:
+                await context.bot.send_message(chat_id=query.message.chat_id, text="Нет комментария")
+
         status_file = f"photos/{selected_dir}/status.txt"
         with open(status_file, "a", encoding="utf-8") as f:
             from datetime import datetime
@@ -107,33 +131,10 @@ class WorkMenu:
             elif user_id == 566893692:
                 f.write(f"\n{timestamp}_23")
             else:
-                await query.edit_message_text("Ошибка, Вы - пользователь без права доступа, перенаправляю в главное меню. ")
+                await query.edit_message_text(
+                    "Ошибка, Вы - пользователь без права доступа, перенаправляю в главное меню. ")
                 await MainMenu().show(update, context)
                 return ConversationHandler.END
-
-        # 3.3 — Запоминаем папку за пользователем
-        context.user_data["my_folders"].append(selected_dir)
-        await query.edit_message_text("Отправляю тебе задачу, секунду...")
-
-        # 4 — Отправка всех .jpg и comment.txt
-        folder_path = f"photos/{selected_dir}"
-        jpg_files = sorted([f for f in os.listdir(folder_path) if f.lower().endswith((".jpg", ".png", ".webp", ".bmp", "jpeg"))])
-        comment_path = os.path.join(folder_path, "comment.txt")
-
-        # Отправляем фотографии
-        if jpg_files:
-            from telegram import InputMediaPhoto
-            media_group = [InputMediaPhoto(open(os.path.join(folder_path, img), "rb")) for img in jpg_files]
-            await context.bot.send_media_group(chat_id=query.message.chat_id, media=media_group)
-
-        # Отправляем комментарий
-        if os.path.exists(comment_path):
-            with open(comment_path, "r", encoding="utf-8") as f:
-                comment = f.read()
-            if comment:
-                await context.bot.send_message(chat_id=query.message.chat_id, text=comment)
-            else:
-                await context.bot.send_message(chat_id=query.message.chat_id, text="Нет комментария")
 
         await context.bot.send_message(chat_id=query.message.chat_id, text=f"Задача взята в работу. Чтобы выслать готовую работу, перейдите в Главное меню -> Отправить работу")
         await MainMenu().show(update, context)
