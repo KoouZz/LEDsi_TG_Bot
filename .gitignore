@@ -1,0 +1,9 @@
+users.txt
+messages.db
+messages.sqbpro
+bot_OLD.py
+/src/__pycache__
+/src/.env
+.idea
+/photos/
+/.venv/
