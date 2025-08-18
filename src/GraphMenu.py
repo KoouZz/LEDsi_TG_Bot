@@ -136,10 +136,10 @@ class GraphMenu:
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 f.write(f"{timestamp}_10")
 
-            # allowed_users = os.getenv("USER_ALLOW")
-            # allowed_users_list = [int(uid.strip()) for uid in allowed_users.split(",") if uid.strip().isdigit()]
-            # for allowed_user in allowed_users_list:
-            #     await context.bot.send_message(chat_id=allowed_user, text="Добавлена новая задача!")
+            allowed_users = os.getenv("USER_ALLOW")
+            allowed_users_list = [int(uid.strip()) for uid in allowed_users.split(",") if uid.strip().isdigit()]
+            for allowed_user in allowed_users_list:
+                await context.bot.send_message(chat_id=allowed_user, text="Добавлена новая задача!")
 
             await MainMenu.show(update, context)
             return ConversationHandler.END
@@ -239,10 +239,10 @@ class GraphMenu:
             f.write(f"{timestamp}_10")
         await update.message.reply_text("Я сохранил вашу задачу и передал в работу")
 
-        # allowed_users = os.getenv("USER_ALLOW")
-        # allowed_users_list = [int(uid.strip()) for uid in allowed_users.split(",") if uid.strip().isdigit()]
-        # for allowed_user in allowed_users_list:
-        #     await context.bot.send_message(chat_id=allowed_user, text="Добавлена новая задача!")
+        allowed_users = os.getenv("USER_ALLOW")
+        allowed_users_list = [int(uid.strip()) for uid in allowed_users.split(",") if uid.strip().isdigit()]
+        for allowed_user in allowed_users_list:
+            await context.bot.send_message(chat_id=allowed_user, text="Добавлена новая задача!")
 
         await MainMenu.show(update, context)
         return ConversationHandler.END

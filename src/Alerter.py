@@ -35,24 +35,24 @@ class Alerter:
             user = line.strip().split("#")
             logger.info(f"Обрабатываю пользователя: {user}")
             id = user[0]
-            if id == "429394445":
-                if user[1] != "Фамилия?":
-                    second_name = user[1]
-                else:
-                    second_name = "Нет фамилии"
+            if user[1] != "Фамилия?":
+                second_name = user[1]
+            else:
+                second_name = "Нет фамилии"
 
-                if user[2] != "Имя?":
-                    first_name = user[2]
-                else:
-                    first_name = "Нет имени"
+            if user[2] != "Имя?":
+                first_name = user[2]
+            else:
+                first_name = "Нет имени"
 
-                if user[3] != "Отчество?":
-                    patronymic = user[3]
-                else:
-                    patronymic = "Нет отчества"
+            if user[3] != "Отчество?":
+                patronymic = user[3]
+            else:
+                patronymic = "Нет отчества"
 
-                logger.info(f"Отправляю информацию:\nID: {id}\nФамилия: {second_name}\nИмя: {first_name}\nОтчество: {patronymic}")
-                await context.bot.send_message(chat_id=int(id), text=text)
+            logger.info(f"Отправляю информацию:\nID: {id}\nФамилия: {second_name}\nИмя: {first_name}\nОтчество: {patronymic}")
+            await context.bot.send_message(chat_id=int(id), text=text)
+
         await MainMenu.show(update, context)
         return ConversationHandler.END
 
