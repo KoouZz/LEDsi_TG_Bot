@@ -22,23 +22,38 @@ class MainMenu:
                 user_id = update.callback_query.from_user.id
             else:
                 return ConversationHandler.END
+
             allowed_users = os.getenv("USER_ALLOW")
             allowed_users_list = [int(uid.strip()) for uid in allowed_users.split(",") if uid.strip().isdigit()]
+
+            engineers = os.getenv("ENGINEERS")
+            engineers_list = [int(uid.strip()) for uid in engineers.split(",") if uid.strip().isdigit()]
+
             if user_id == 429394445:
                 keyboard = [
                     [InlineKeyboardButton("Запросить схемы", callback_data='load')],
                     [InlineKeyboardButton("Проверить статус схем", callback_data='status')],
                     [InlineKeyboardButton("Взять в работу", callback_data='work'),
                      InlineKeyboardButton("Отправить работу", callback_data='work_done')],
+                    [InlineKeyboardButton("Визирование", callback_data="approval")],
                     [InlineKeyboardButton("<ADM>Отправить уведомление", callback_data='send_message')],
                 ]
                 reply_markup = InlineKeyboardMarkup(keyboard)
-            elif user_id in allowed_users_list and user_id != 429394445:
+            elif user_id in allowed_users_list and user_id not in engineers_list:
                 keyboard = [
                     [InlineKeyboardButton("Запросить схемы", callback_data='load')],
                     [InlineKeyboardButton("Проверить статус схем", callback_data='status')],
                     [InlineKeyboardButton("Взять в работу", callback_data='work'),
-                     InlineKeyboardButton("Отправить работу", callback_data='work_done')]
+                     InlineKeyboardButton("Отправить работу", callback_data='work_done')],
+                ]
+                reply_markup = InlineKeyboardMarkup(keyboard)
+            elif user_id in engineers_list:
+                keyboard = [
+                    [InlineKeyboardButton("Запросить схемы", callback_data='load')],
+                    [InlineKeyboardButton("Проверить статус схем", callback_data='status')],
+                    [InlineKeyboardButton("Взять в работу", callback_data='work'),
+                     InlineKeyboardButton("Отправить работу", callback_data='work_done')],
+                    [InlineKeyboardButton("Визирование", callback_data="approval")],
                 ]
                 reply_markup = InlineKeyboardMarkup(keyboard)
             else:

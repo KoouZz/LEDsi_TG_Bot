@@ -139,6 +139,29 @@ class User:
             return None
 
     @staticmethod
+    def get_user_name_from_id(id: int | str, return_list = False) -> str | list[str] | None:
+        name = None
+        if id is None:
+            return name
+
+        users = User.get_users_list()
+        if type(id) is int:
+            str_id = str(id)
+        else:
+            str_id = id
+
+        for user in users:
+            if user[0] == str_id:
+                name = user[1] + " " + user[2] + " " + user[3]
+
+        if return_list is True:
+            # Возвращаем список [Фамилия, Имя, Отчество]
+            return name.strip().split(" ")
+
+        # Стандартно возвращаем строку "Фамилия Имя Отчество"
+        return name
+
+    @staticmethod
     def get_user_data_dir(dir: str):
         name = None
         matched_id = None
