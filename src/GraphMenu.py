@@ -6,6 +6,7 @@ from Utils import Commands
 from Utils import States, User
 from MainMenu import MainMenu
 from PhotoLoader import Load
+from datetime import datetime
 import logging
 import asyncio
 
@@ -131,10 +132,7 @@ class GraphMenu:
                 f.write(f"{name}\n\n{comment}\n")
             await update.message.reply_text("Мы сохранили ваш комментарий")
 
-            with open(f"{context.user_data["current_photo_dir"]}/status.txt", "w", encoding="utf-8") as f:
-                from datetime import datetime
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                f.write(f"{timestamp}_10")
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
             allowed_users = os.getenv("USER_ALLOW")
             allowed_users_list = [int(uid.strip()) for uid in allowed_users.split(",") if uid.strip().isdigit()]
@@ -148,21 +146,22 @@ class GraphMenu:
             if curr_id not in engineers_list:
                 logger.info("Пользователь не инженер. отправляю на визирование")
                 manager = User.get_user_name_from_id(curr_id)
-                but = [[InlineKeyboardButton("Подтвердить и отправить в работу",
-                                             callback_data=f"prove_{curr_id}_{timestamp}"),
-                        InlineKeyboardButton("Вернуть на уточнение менеджеру",
-                                             callback_data=f"decline_{curr_id}_{timestamp}")]]
-                markup = InlineKeyboardMarkup(but)
+
+                status_code = "50"
                 for engineer in engineers_list:
                     logger.info(f"Отправляю запрос на визирование: {engineer}...")
-                    await context.bot.send_message(chat_id=engineer, text=f"Задача от: {manager}. Что делаем?")
-                    await context.bot.send_message(chat_id=engineer, text="Требуется проверка", reply_markup=markup)
+                    await context.bot.send_message(chat_id=engineer, text=f"Поступила задача от {manager}, требуется проверка")
             else:
                 # иначе отправляем уведомление о новой задаче
                 logger.info("Пользователь ИНЖЕНЕР. Визирование не требуется")
+                status_code = "10"
                 for allowed_user in allowed_users_list:
                     logger.info(f"Отправляю уведомление {allowed_user}...")
                     await context.bot.send_message(chat_id=allowed_user, text="Добавлена новая задача!")
+
+
+            with open(f"{context.user_data["current_photo_dir"]}/status.txt", "w", encoding="utf-8") as f:
+                f.write(f"{timestamp}_{status_code}")
 
             await MainMenu.show(update, context)
             return ConversationHandler.END
@@ -255,11 +254,6 @@ class GraphMenu:
             message = f"{name}\nПараметры экрана:\nP{pith} {width}x{height}\n\nДополнительные комментарии:\n{comment}"
             f.write(message)
 
-        with open(f"{context.user_data["current_photo_dir"]}/status.txt", "w", encoding="utf-8") as f:
-            from datetime import datetime
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            f.write(f"{timestamp}_10")
-
         await update.message.reply_text("Я сохранил вашу задачу и передал в работу")
 
         allowed_users = os.getenv("USER_ALLOW")
@@ -268,25 +262,28 @@ class GraphMenu:
         engineers = os.getenv("ENGINEERS")
         engineers_list = [int(uid.strip()) for uid in engineers.split(",") if uid.strip().isdigit()]
 
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
         curr_id = update.message.from_user.id
 
         # Если отправитель не инженер, то отправляем задачу на визирование
         if curr_id in engineers_list:
             logger.info("Пользователь не инженер. отправляю на визирование")
             manager = User.get_user_name_from_id(curr_id)
-            but = [[InlineKeyboardButton("Подтвердить и отправить в работу", callback_data=f"prove_{curr_id}_{timestamp}"),
-                    InlineKeyboardButton("Вернуть на уточнение менеджеру", callback_data=f"decline_{curr_id}_{timestamp}")]]
-            markup = InlineKeyboardMarkup(but)
+            status_code = "50"
             for engineer in engineers_list:
                 logger.info(f"Отправляю запрос на визирование: {engineer}...")
-                await context.bot.send_message(chat_id=engineer, text=f"Задача от: {manager}. Что делаем?")
-                await context.bot.send_message(chat_id=engineer, text="Требуется проверка", reply_markup=markup)
+                await context.bot.send_message(chat_id=engineer, text=f"Поступила задача от {manager}, требуется проверка")
         else:
             # иначе отправляем уведомление о новой задаче
             logger.info("Пользователь ИНЖЕНЕР. Визирование не требуется")
+            status_code = "10"
             for allowed_user in allowed_users_list:
                 logger.info(f"Отправляю уведомление {allowed_user}...")
                 await context.bot.send_message(chat_id=allowed_user, text="Добавлена новая задача!")
+
+        with open(f"{context.user_data["current_photo_dir"]}/status.txt", "w", encoding="utf-8") as f:
+            f.write(f"{timestamp}_{status_code}")
 
         await MainMenu.show(update, context)
         return ConversationHandler.END

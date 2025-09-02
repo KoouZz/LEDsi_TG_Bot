@@ -6,7 +6,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, ConversationHandler, CallbackQueryHandler, MessageHandler, filters, \
     CommandHandler
 from MainMenu import MainMenu
-from Utils import User, Commands, States
+from Utils import User, Commands, States, Checker
 from src.PhotoLoader import Load
 
 logger = logging.getLogger()
@@ -42,7 +42,8 @@ class WorkDoneMenu:
             in_work_id_to_name_dirs = []
             in_work_ids = []
             in_work_dirs = []
-            for dir in dirs_to_done:
+            text, tags = Checker.check_status(dirs_to_done, [code])
+            for dir in tags:
                 logger.info(f"Обрабатываю {dir}")
                 if not os.path.exists(f"photos/{dir}/status.txt"):
                     logger.info("Нет файла status.txt")
@@ -51,10 +52,7 @@ class WorkDoneMenu:
                     lines = f.readlines()
                     status_line = lines[-1].strip().split('_')
                 logger.info(f"ID папки = {status_line[0]}")
-                # фильтр по статусу
-                if status_line[2] != code:
-                    logger.info("Пропускаю эту папку, потому что не соответствует пользователю")
-                    continue
+
                 in_work_dirs.append(dir)
                 name, matched_id = User.get_user_data_dir(dir)
                 logger.info(f"Обрабатываю папку {dir}")

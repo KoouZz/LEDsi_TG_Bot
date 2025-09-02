@@ -112,7 +112,8 @@ class StatusCodes:
           "22": "Схемы приняты в работу Данилом Доценко", "11": "Схемы возвращены Данилом Гильвановым для уточнения",
           "12": "Схемы возвращены Данилом Доценко для уточнения", "31": "Схемы готовы. Автор - Данил Гильванов",
           "32": "Схемы готовы. Автор - Данил Доценко", "13": "Схемы возвращены Косенко Романом для уточнения",
-          "23": "Схемы приняты в работу Романом Косенко", "33": "Схемы готовы. Автор - Роман Косенко"}
+          "23": "Схемы приняты в работу Романом Косенко", "33": "Схемы готовы. Автор - Роман Косенко",
+          "50": "Схемы на визировании инженером"}
 
 class User:
     @staticmethod
@@ -189,7 +190,7 @@ class User:
 
 class Checker:
     @staticmethod
-    def check_status(tasks: list) -> list[str | Any] | list[str | None]:
+    def check_status(tasks: list, codes: list) -> list[str | Any] | list[str | None]:
         text = "Нашел ваши схемы:\n"
         tag = []
         for indx, task in enumerate(tasks, start=1):
@@ -201,8 +202,14 @@ class Checker:
                     logger.warning(f"Файл {task}/status.txt пуст")
                     continue
 
-                date_line = lines[0].strip().split('_')
                 last_line = lines[-1].strip().split('_')
+                code = last_line[2]
+
+                if code not in codes:
+                    logger.warning(f"Код в {task} не соответствует запрашиваему списку")
+                    continue
+
+                date_line = lines[0].strip().split('_')
 
                 logger.info(f"Создание - {date_line}")
                 logger.info(f"Изменение статуса - {last_line}")
@@ -220,19 +227,17 @@ class Checker:
                         text += "__Комментарий отсутствует__\n"
                 # Дата и время отправления
                 text += f"Дата и время отправления:\n{date_line[0][-2:]}/{date_line[0][4:6]}/{date_line[0][0:4]} {date_line[1][0:2]}:{date_line[1][2:4]}:{date_line[1][-2:]}\n\n"
-                # Статус по коду
-                code = last_line[2]
 
                 status = StatusCodes.dict.get(code)
                 if code == "10":
                     prefix = "\n"
-                elif code in ["21", "22", "23", "31", "32", "33", "11", "12", "13"]:
-                    if code in ["31", "32", "33"]:
-                        tag.append(task)
+                elif code in ["21", "22", "23", "31", "32", "33", "11", "12", "13", "50"]:
                     prefix = f"Дата и время отправления:\n{last_line[0][-2:]}/{last_line[0][4:6]}/{last_line[0][0:4]} {last_line[1][0:2]}:{last_line[1][2:4]}:{last_line[1][-2:]}\n"
                 else:
                     status = "!!Ошибка!!"
                     prefix = "\n"
+
+                tag.append(task)
                 text += f"Статус - {status}\n" + f"{prefix}\n"
 
             except Exception as e:

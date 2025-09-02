@@ -29,7 +29,8 @@ class StatusMenu:
                 logger.info(f"Нашел папку {dir}, добавляю в список для обработки")
         if list_tasks:
             key = []
-            text, tags = Checker().check_status(list_tasks)
+            text, tags = Checker.check_status(list_tasks, ["31", "32", "33"])
+            text, j = Checker.check_status(list_tasks, ["10", "11", "12", "13", "21", "22", "23", "50", "31", "32", "33"])
             if tags is not None and tags:
                 logger.info(f"Получил готовые работы для отправки пользователю: {tags}")
                 for tag in tags:

@@ -2,7 +2,7 @@ import logging
 import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, ConversationHandler, CallbackQueryHandler
-from Utils import User
+from Utils import User, Checker
 from MainMenu import MainMenu
 
 logger = logging.getLogger()
@@ -32,25 +32,15 @@ class WorkMenu:
         to_work_id_to_name_dirs = []
         to_work_ids = []  # для callback_data
 
-        for dir in dirs:
-            logger.info(f"Обрабатываю папку {dir}")
-            if not os.path.exists(f"photos/{dir}/status.txt"):
-                continue
-
-            with open(f"photos/{dir}/status.txt", "r") as f:
-                lines = f.readlines()
-                status_line = lines[-1].strip().split('_')
-
-            # фильтр по статусу
-            if status_line[2] not in ["10", "11", "12", "13"]:
-                continue
-
-            to_work_origin_dirs.append(dir)
-            name, matched_id = User.get_user_data_dir(dir)
+        text, tags = Checker.check_status(dirs, ["10", "11", "12", "13"])
+        for tag in tags:
+            logger.info(f"ОБРАБАТЫВАЮ {tag} в WorkMenu")
+            name, matched_id = User.get_user_data_dir(tag)
             length_symbols = len(matched_id)
 
+            to_work_origin_dirs.append(tag)
             # сохраняем метку кнопки
-            to_work_id_to_name_dirs.append(name + dir[length_symbols:])
+            to_work_id_to_name_dirs.append(name + tag[length_symbols:])
             # сохраняем ID для callback_data
             to_work_ids.append(matched_id)
 
