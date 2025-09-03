@@ -32,7 +32,7 @@ class WorkMenu:
         to_work_id_to_name_dirs = []
         to_work_ids = []  # для callback_data
 
-        text, tags = Checker.check_status(dirs, ["10", "11", "12", "13"])
+        text, tags = Checker.check_status(dirs, ["10", "11", "12", "13", "51", "52"])
         for tag in tags:
             logger.info(f"ОБРАБАТЫВАЮ {tag} в WorkMenu")
             name, matched_id = User.get_user_data_dir(tag)

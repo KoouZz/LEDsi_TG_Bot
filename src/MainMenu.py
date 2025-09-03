@@ -12,6 +12,18 @@ class MainMenu:
     @staticmethod
     async def show(update: Update, context: CallbackContext):
         """Асинхронный метод для отображения главного меню"""
+        if "last_buttons" in context.user_data:
+            try:
+                logger.info("Нашел кнопки в сообщении, удаляю...")
+                await context.bot.edit_message_reply_markup(
+                    chat_id=update.effective_chat.id,
+                    message_id=context.user_data["last_buttons"],
+                    reply_markup=None
+                )
+                del context.user_data["last_buttons"]
+            except:
+                pass
+
         try:
             if update.message:
                 message = update.message

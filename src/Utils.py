@@ -105,7 +105,7 @@ class Commands:
         return CallbackQueryHandler(self.to_menu, pattern="^start$")
 
 class States:
-    NAMING_IMG, LOAD_IMG, NAMING, WIDTH, HEIGHT, PITCH, COM, IN_WORK, ALERT = range(9)
+    NAMING_IMG, LOAD_IMG, NAMING, WIDTH, HEIGHT, PITCH, COM, IN_WORK, ALERT, APPROVAL_MNU, DISCARD_COM = range(11)
 
 class StatusCodes:
     dict={"10": "Схемы ожидают принятия в работу", "21": "Схемы приняты в работу Данилом Гильвановым",
@@ -113,7 +113,8 @@ class StatusCodes:
           "12": "Схемы возвращены Данилом Доценко для уточнения", "31": "Схемы готовы. Автор - Данил Гильванов",
           "32": "Схемы готовы. Автор - Данил Доценко", "13": "Схемы возвращены Косенко Романом для уточнения",
           "23": "Схемы приняты в работу Романом Косенко", "33": "Схемы готовы. Автор - Роман Косенко",
-          "50": "Схемы на визировании инженером"}
+          "50": "Схемы на визировании инженером", "51": "Схемы проверены Данилом Гильвановым", "52": "Схемы проверены Данилом Доценко",
+          "61": "Схемы возвращены на доработку Данилом Гильвановым", "62": "Схемы возвращены на доработку Данилом Доценко"}
 
 class User:
     @staticmethod
@@ -231,7 +232,7 @@ class Checker:
                 status = StatusCodes.dict.get(code)
                 if code == "10":
                     prefix = "\n"
-                elif code in ["21", "22", "23", "31", "32", "33", "11", "12", "13", "50"]:
+                elif code in ["21", "22", "23", "31", "32", "33", "11", "12", "13", "50", "51", "52", "61", "62"]:
                     prefix = f"Дата и время отправления:\n{last_line[0][-2:]}/{last_line[0][4:6]}/{last_line[0][0:4]} {last_line[1][0:2]}:{last_line[1][2:4]}:{last_line[1][-2:]}\n"
                 else:
                     status = "!!Ошибка!!"

@@ -7,6 +7,7 @@ from telegram.ext import Application, CommandHandler
 from Utils import Commands
 from WorkDoneMenu import WorkDoneMenu
 from Alerter import Alerter
+from ApprovalMenu import ApprovalMenu
 
 # Запуск библиотеки для неявного указания токена ТГ бота
 load_dotenv()
@@ -31,6 +32,8 @@ class Main:
         self.application.add_handler(GraphMenu().get_handler_graph_menu_image())
         self.application.add_handler(GraphMenu().get_handler_graph_menu_entry())
         self.application.add_handler(GraphMenu().get_handler_graph_menu_write())
+        self.application.add_handler(ApprovalMenu().get_handler_in_approval_menu())
+        self.application.add_handler(ApprovalMenu().get_handler_approval_dialog())
         self.application.add_handler(StatusMenu().get_handler_status_menu())
         self.application.add_handler(StatusMenu().get_handler_in_status_dir())
         self.application.add_handler(WorkMenu().get_handler_work_menu())
