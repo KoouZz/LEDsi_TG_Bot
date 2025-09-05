@@ -9,7 +9,7 @@ from PhotoLoader import Load
 import logging
 import asyncio
 
-from src.Utils import Checker
+from Utils import Checker
 
 logger = logging.getLogger()
 logging.basicConfig(level=logging.INFO)
