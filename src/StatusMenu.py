@@ -1,4 +1,6 @@
 import os
+from datetime import datetime
+
 from Utils import Checker, Commands
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from telegram.ext import ConversationHandler, CallbackQueryHandler, CallbackContext
@@ -34,6 +36,13 @@ class StatusMenu:
             if tags is not None and tags:
                 logger.info(f"Получил готовые работы для отправки пользователю: {tags}")
                 for tag in tags:
+                    if Checker.check_time(tag):
+                        logger.info(f"Помещаю схему {tag} в архив")
+                        with open(f"photos/{tag}/status.txt", "a", encoding="utf-8") as status:
+                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                            status.write(f"\n{timestamp}_90")
+                        continue
+
                     comment_file = f"photos/{tag}/comment.txt"
                     with open(comment_file, "r", encoding="utf-8") as f:
                         lines = f.readlines()
@@ -50,9 +59,11 @@ class StatusMenu:
                     key.append([InlineKeyboardButton(text_button, callback_data=f"status_button_{tag}")])
                 context.user_data["in_status"] = tags
             if key:
-                key.append([InlineKeyboardButton("Вернуться в меню", callback_data="start")])
+                key.append([InlineKeyboardButton("Архив схем", callback_data="archive"),
+                            InlineKeyboardButton("Вернуться в меню", callback_data="start")])
             else:
-                key = [[InlineKeyboardButton("Вернуться в меню", callback_data="start")]]
+                key = [[InlineKeyboardButton("Архив схем", callback_data="archive"),
+                        InlineKeyboardButton("Вернуться в меню", callback_data="start")]]
             markup = InlineKeyboardMarkup(key)
             sent = await update.callback_query.edit_message_text(text, reply_markup=markup)
             context.user_data["last_buttons"] = sent.message_id

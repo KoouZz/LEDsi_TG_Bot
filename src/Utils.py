@@ -2,7 +2,7 @@ import asyncio
 import logging
 import os.path
 from typing import Any
-
+from datetime import datetime
 from telegram import Update
 from telegram.ext import CallbackContext, CallbackQueryHandler, ConversationHandler
 
@@ -249,3 +249,49 @@ class Checker:
             return [text, tag]
         else:
             return ["Схемы не найдены", None]
+
+    @staticmethod
+    def check_time(dir: str) -> bool | None:
+        status_path = f"photos/{dir}/status.txt"
+        try:
+            with open(status_path, "r", encoding="utf-8") as status:
+                lines = status.readlines()
+        except Exception as e:
+            logger.warning(e)
+            return None
+
+        if lines:
+            last_line = lines[-1]
+        else:
+            return None
+
+        info_list = last_line.split("_")
+
+        if len(info_list) != 3:
+            logger.warning("Строка в статусе состоит не из [дата]_[время]_[статус-код]")
+            return None
+
+        code = info_list[2]
+        if code not in ["31", "32", "33"]:
+            logger.warning("Задача все ещё в работе")
+            return None
+
+
+        task_day = int(info_list[0][-2:])
+        task_month = int(info_list[0][4:6])
+        task_year = int(info_list[0][:4])
+        task_hour = int(info_list[1][:2])
+        task_minute = int(info_list[1][2:4])
+        task_second = int(info_list[1][-2:])
+        logger.info(f"год {task_year}, месяц {task_month}, день {task_day}, час {task_hour}, минута {task_minute}, секунда {task_second}")
+
+        current_time = datetime.now()
+        task_time = datetime(task_year, task_month, task_day, task_hour, task_minute, task_second)
+
+        delta = current_time - task_time
+
+        if delta.days >= 3:
+            logger.info("Схемы закончены и прошло более 3-х дней, можно помещать в архив")
+            return True
+        logger.info("Помещать в архив схемы нельзя")
+        return False
