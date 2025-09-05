@@ -7,7 +7,7 @@ from telegram.ext import CallbackContext, ConversationHandler, CallbackQueryHand
     CommandHandler
 from MainMenu import MainMenu
 from Utils import User, Commands, States, Checker
-from src.PhotoLoader import Load
+from PhotoLoader import Load
 
 logger = logging.getLogger()
 logging.basicConfig(level=logging.INFO)
