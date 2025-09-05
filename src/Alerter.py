@@ -4,7 +4,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackQueryHandler, CallbackContext, ConversationHandler, MessageHandler, filters, \
     CommandHandler
 from Utils import States, Commands
-from src.MainMenu import MainMenu
+from MainMenu import MainMenu
 
 logger = logging.getLogger()
 logging.basicConfig(level=logging.INFO)
