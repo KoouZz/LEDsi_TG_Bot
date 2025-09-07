@@ -1,4 +1,5 @@
 import logging
+import os
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackQueryHandler, CallbackContext, ConversationHandler, MessageHandler, filters, \
@@ -14,7 +15,7 @@ class Alerter:
     async def alerter_entry(update: Update, context: CallbackContext) -> int:
         query = update.callback_query
         await query.answer()
-        key = [[InlineKeyboardButton("Вернуться в меню", callback_data="start")]]
+        key = [[InlineKeyboardButton("🔵 В меню", callback_data="start")]]
         markup = InlineKeyboardMarkup(key)
         sent = await query.edit_message_text("Введите текст, который хотите отправить пользователям", reply_markup=markup)
         context.user_data["last_buttons"] = sent.message_id
@@ -35,7 +36,7 @@ class Alerter:
             user = line.strip().split("#")
             logger.info(f"Обрабатываю пользователя: {user}")
             id = user[0]
-            if int(id) == 429394445:
+            if int(id) == int(os.getenv("CODE_X2")):
                 if user[1] != "Фамилия?":
                     second_name = user[1]
                 else:

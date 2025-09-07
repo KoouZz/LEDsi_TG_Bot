@@ -8,6 +8,7 @@ from telegram.ext import CallbackContext, ConversationHandler, CallbackQueryHand
 from MainMenu import MainMenu
 from Utils import User, Commands, States, Checker
 from PhotoLoader import Load
+from datetime import datetime
 
 logger = logging.getLogger()
 logging.basicConfig(level=logging.INFO)
@@ -17,11 +18,11 @@ class WorkDoneMenu:
     async def welcome_message(update: Update, context: CallbackContext):
         query = update.callback_query
         user_id = query.from_user.id
-        if user_id == 429394445:
+        if user_id == int(os.getenv("CODE_X2")):
             code = "22"
-        elif user_id == 5283130051:
+        elif user_id == int(os.getenv("CODE_X1")):
             code = "21"
-        elif user_id == 566893692:
+        elif user_id == int(os.getenv("CODE_X3")):
             code = "23"
         else:
             code = None
@@ -43,6 +44,11 @@ class WorkDoneMenu:
             in_work_ids = []
             in_work_dirs = []
             text, tags = Checker.check_status(dirs_to_done, [code])
+            if not tags or tags is None:
+                await query.edit_message_text("Не нашел схемы, которые можно отправить. Возвращаю в меню...")
+                await MainMenu.show(update, context)
+                return ConversationHandler.END
+
             for dir in tags:
                 logger.info(f"Обрабатываю {dir}")
                 if not os.path.exists(f"photos/{dir}/status.txt"):
@@ -59,9 +65,10 @@ class WorkDoneMenu:
                 logger.info(f"Имя пользователя, создавшего папку {name}")
                 logger.info(f"ID пользователя, создавшего папку {matched_id}")
 
-                length_symbols = len(matched_id)
+                with open(f"photos/{dir}/comment.txt", "r", encoding="utf-8") as f:
+                    comment = f.readlines()[0]
                 # сохраняем метку кнопки
-                in_work_id_to_name_dirs.append(name + dir[length_symbols:])
+                in_work_id_to_name_dirs.append(name + f" - {comment}")
                 # сохраняем ID для callback_data
                 in_work_ids.append(matched_id)
         else:
@@ -80,7 +87,7 @@ class WorkDoneMenu:
                 for text, uid in zip(in_work_id_to_name_dirs, in_work_ids)
             ]
             context.user_data["in_work"] = in_work_dirs
-            buttons.append([InlineKeyboardButton("Вернуться в меню", callback_data="start")])
+            buttons.append([InlineKeyboardButton("🔵 В меню", callback_data="start")])
             markup = InlineKeyboardMarkup(buttons)
             sent = await query.edit_message_text("Выберите задачу, которую хотите закрыть", reply_markup=markup)
             context.user_data["last_buttons"] = sent.message_id
@@ -105,7 +112,7 @@ class WorkDoneMenu:
             await query.edit_message_text("Папка не найдена или уже недоступна.")
             return ConversationHandler.END
 
-        key = [[InlineKeyboardButton("Вернуться в меню", callback_data="start")]]
+        key = [[InlineKeyboardButton("🔵 В меню", callback_data="start")]]
         markup = InlineKeyboardMarkup(key)
         sent = await query.edit_message_text("Загрузите фото по инструкции:\n"
                                       "1. Нажмите 📎\n"
@@ -173,27 +180,43 @@ class WorkDoneMenu:
         if context.user_data.get("from_image_upload"):
             # продолжаем, как только пользователь ввёл комментарий
             context.user_data.pop("from_image_upload", None)
+            user_id = update.message.from_user.id
             comment = update.message.text
 
             curr_dir = f"photos/{context.user_data['curr_dir']}"
-            user_id = context.user_data['curr_dir'].split('_')[0]
-            logger.info(f"Отправляю уведомлению пользователю: {user_id}")
+            manager_id = context.user_data['curr_dir'].split('_')[0]
+            logger.info(f"Отправляю уведомлению пользователю: {manager_id}")
 
-            await context.bot.send_message(chat_id=int(user_id), text="Схемы готовы, проверьте статус")
-            if comment:
-                await context.bot.send_message(chat_id=int(user_id), text=f"Комментарий к выполненной работе:\n{comment}")
-            await update.message.reply_text("Отправили пользователю информацию о завершении работы")
+            engineers = os.getenv("ENGINEERS")
+            engineers_list = [int(uid.strip()) for uid in engineers.split(",") if uid.strip().isdigit()]
+            if str(user_id) in engineers:
+                with open(f"{curr_dir}/status.txt", "a") as f:
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    if user_id == int(os.getenv("CODE_X1")):
+                        f.write(f"\n{timestamp}_31")
+                    elif user_id == int(os.getenv("CODE_X2")):
+                        f.write(f"\n{timestamp}_32")
 
-            with open(f"{curr_dir}/status.txt", "a") as f:
-                from datetime import datetime
-                upl_user_id = update.message.from_user.id
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                if upl_user_id == 5283130051:
-                    f.write(f"\n{timestamp}_31")
-                elif upl_user_id == 429394445:
-                    f.write(f"\n{timestamp}_32")
-                elif upl_user_id == 566893692:
-                    f.write(f"\n{timestamp}_33")
+                await context.bot.send_message(chat_id=int(manager_id), text="Схемы готовы, проверьте статус")
+                if comment:
+                    await context.bot.send_message(chat_id=int(manager_id),
+                                                   text=f"Комментарий к выполненной работе:\n{comment}")
+                await update.message.reply_text("Отправили пользователю информацию о завершении работы")
+            else:
+                with open(f"{curr_dir}/status.txt", "a") as f:
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    if user_id == int(os.getenv("CODE_X3")):
+                        f.write(f"\n{timestamp}_83")
+                    else:
+                        await context.bot.send_message(chat_id=int(user_id), text="Произошла ошибка. Вас нет в списке пользователей с правом загрузки разработанных схем")
+                        await MainMenu.show(update, context)
+                        return ConversationHandler.END
+
+                dev_name = User.get_user_name_from_id(user_id)
+                for engineer in engineers_list:
+                    logger.info(f"Отправляю запрос на визирование: {engineer}...")
+                    await context.bot.send_message(chat_id=engineer, text=f"Поступили готовые схемы от {dev_name}, требуется проверка")
+                await context.bot.send_message(chat_id=int(user_id), text="Отправил схему на проверку. Пришлю результат чуть позже")
 
             await MainMenu.show(update, context)
             return ConversationHandler.END

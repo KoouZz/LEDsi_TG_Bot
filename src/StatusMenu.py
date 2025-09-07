@@ -31,8 +31,8 @@ class StatusMenu:
                 logger.info(f"Нашел папку {dir}, добавляю в список для обработки")
         if list_tasks:
             key = []
-            text, tags = Checker.check_status(list_tasks, ["31", "32", "33"])
-            text, j = Checker.check_status(list_tasks, ["10", "11", "12", "13", "21", "22", "23", "50", "31", "32", "33", "51", "52", "61", "62"])
+            text_none, tags = Checker.check_status(list_tasks, ["31", "32", "33"])
+            text, j = Checker.check_status(list_tasks, ["10", "11", "12", "13", "21", "22", "23", "50", "31", "32", "33", "51", "52", "61", "62", "83"])
             if tags is not None and tags:
                 logger.info(f"Получил готовые работы для отправки пользователю: {tags}")
                 for tag in tags:
@@ -60,12 +60,12 @@ class StatusMenu:
                 context.user_data["in_status"] = tags
             if key:
                 key.append([InlineKeyboardButton("Архив схем", callback_data="archive"),
-                            InlineKeyboardButton("Вернуться в меню", callback_data="start")])
+                            InlineKeyboardButton("🔵 В меню", callback_data="start")])
             else:
                 key = [[InlineKeyboardButton("Архив схем", callback_data="archive"),
-                        InlineKeyboardButton("Вернуться в меню", callback_data="start")]]
+                        InlineKeyboardButton("🔵 В меню", callback_data="start")]]
             markup = InlineKeyboardMarkup(key)
-            sent = await update.callback_query.edit_message_text(text, reply_markup=markup)
+            sent = await update.callback_query.edit_message_text(text, reply_markup=markup, parse_mode='Markdown')
             context.user_data["last_buttons"] = sent.message_id
         else:
             await update.callback_query.edit_message_text("Не нашел ваших схема")
@@ -116,6 +116,62 @@ class StatusMenu:
         await MainMenu.show(update, context)
         return ConversationHandler.END
 
+    @staticmethod
+    async def view_archive(update: Update, context: CallbackContext):
+        query = update.callback_query
+        user_id = str(query.from_user.id)
+
+        await query.answer()
+        count = len(user_id)
+        logger.info(f"{count} - символы юзернейма")
+        dirs = os.listdir("photos/")
+        logger.info(f"Директории: {dirs}")
+        list_tasks = []
+        logger.info("Пытаюсь найти папки схожие с сигнатурой пользователя")
+        for dir in dirs:
+            logger.info(f"Директория создана текущим пользователем? - {dir[:count] == user_id}")
+            logger.info(f"Проверяю наличие файла status.txt - {os.path.exists(f"photos/{dir}/status.txt")}")
+            if dir[:count] == user_id and os.path.exists(f"photos/{dir}/status.txt"):
+                list_tasks.append(dir)
+                logger.info(f"Нашел папку {dir}, добавляю в список для обработки")
+        if list_tasks:
+            key = []
+            text, tags = Checker.check_status(list_tasks, ["90"])
+            if tags is not None and tags:
+                logger.info(f"Получил готовые работы для отправки пользователю: {tags}")
+                for tag in tags:
+
+                    comment_file = f"photos/{tag}/comment.txt"
+                    with open(comment_file, "r", encoding="utf-8") as f:
+                        lines = f.readlines()
+                        name = lines[0]
+                    tag_list = tag.strip().split('_')
+                    tag_id = tag_list[0]
+                    logger.info(f"ID папки: {tag_id}")
+                    tag_time = tag_list[2]
+                    logger.info(f"Время создания папки: {tag_time}")
+                    tag_date = tag_list[1]
+                    logger.info(f"Дата создания папки: {tag_date}")
+                    # text_button = f"Получить:\n{tag_date[-2:]}/{tag_date[4:6]}/{tag_date[0:4]}\n{tag_time[0:2]}:{tag_time[2:4]}:{tag_time[-2:]}"
+                    text_button = f"Получить:\n{name}"
+                    key.append([InlineKeyboardButton(text_button, callback_data=f"status_button_{tag}")])
+                context.user_data["in_status"] = tags
+            if key:
+                key.append([InlineKeyboardButton("Назад", callback_data="back"),
+                            InlineKeyboardButton("🔵 В меню", callback_data="start")])
+            else:
+                await query.edit_message_text("Не нашел схем в архиве. Возвращаю в меню...")
+                await MainMenu.show(update, context)
+                return ConversationHandler.END
+            markup = InlineKeyboardMarkup(key)
+            sent = await query.edit_message_text(text, reply_markup=markup, parse_mode='Markdown')
+            context.user_data["last_buttons"] = sent.message_id
+        else:
+            await query.edit_message_text("Не нашел ваших схема")
+            await MainMenu.show(update, context)
+            return ConversationHandler.END
+
+
     def get_handler_status_menu(self) -> CallbackQueryHandler:
         return CallbackQueryHandler(self.view, pattern="^status$")
 
@@ -124,3 +180,9 @@ class StatusMenu:
 
     def get_handler_to_menu(self) -> CallbackQueryHandler:
         return CallbackQueryHandler(Commands.start, pattern="^start$")
+
+    def get_handler_archive(self) -> CallbackQueryHandler:
+        return CallbackQueryHandler(self.view_archive, pattern="^archive$")
+
+    def get_handler_back_in_status(self) -> CallbackQueryHandler:
+        return CallbackQueryHandler(self.view, pattern="^back$")

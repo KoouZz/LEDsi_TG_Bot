@@ -25,22 +25,26 @@ class WorkMenu:
             return ConversationHandler.END
 
         dirs = os.listdir("photos/")
-        user_list = User.get_users_list()
-        length_symbols = 0
 
         to_work_origin_dirs = []
         to_work_id_to_name_dirs = []
         to_work_ids = []  # для callback_data
 
         text, tags = Checker.check_status(dirs, ["10", "11", "12", "13", "51", "52"])
+        if not tags or tags is None:
+            await query.edit_message_text("Не нашел схемы к работе. Возвращаю в меню...")
+            await MainMenu.show(update, context)
+            return ConversationHandler.END
+
         for tag in tags:
             logger.info(f"ОБРАБАТЫВАЮ {tag} в WorkMenu")
             name, matched_id = User.get_user_data_dir(tag)
-            length_symbols = len(matched_id)
+            with open(f"photos/{tag}/comment.txt", "r", encoding="utf-8") as f:
+                comment = f.readlines()[0]
 
             to_work_origin_dirs.append(tag)
             # сохраняем метку кнопки
-            to_work_id_to_name_dirs.append(name + tag[length_symbols:])
+            to_work_id_to_name_dirs.append(name + f" - {comment}")
             # сохраняем ID для callback_data
             to_work_ids.append(matched_id)
 
@@ -53,6 +57,7 @@ class WorkMenu:
         ]
 
         context.user_data["work_dir"] = to_work_origin_dirs
+        buttons.append([InlineKeyboardButton("🔵 В меню", callback_data="start")])
 
         markup = InlineKeyboardMarkup(buttons)
         if to_work_origin_dirs:
@@ -90,12 +95,25 @@ class WorkMenu:
 
         folder_path = f"photos/{selected_dir}"
         jpg_files = sorted([f for f in os.listdir(folder_path) if f.lower().endswith((".jpg", ".png", ".webp", ".bmp", "jpeg"))])
+        xlsx_files = sorted(
+            [f for f in os.listdir(folder_path) if f.lower().endswith((".xls", ".xlsx"))])
         comment_path = os.path.join(folder_path, "comment.txt")
 
         if jpg_files:
             from telegram import InputMediaPhoto
             media_group = [InputMediaPhoto(open(os.path.join(folder_path, img), "rb")) for img in jpg_files]
             try:
+                await context.bot.send_media_group(chat_id=query.message.chat_id, media=media_group)
+            except:
+                await context.bot.send_message(chat_id=query.message.chat_id, text="Что-то пошло не так. Возвращаю в меню")
+                await MainMenu.show(update, context)
+                return None
+
+        if xlsx_files:
+            from telegram import InputMediaDocument
+            media_group = [InputMediaDocument(open(os.path.join(folder_path, xls), "rb")) for xls in xlsx_files]
+            try:
+                await context.bot.send_message(chat_id=query.message.chat_id, text = "Спецификация для щита питания:")
                 await context.bot.send_media_group(chat_id=query.message.chat_id, media=media_group)
             except:
                 await context.bot.send_message(chat_id=query.message.chat_id, text="Что-то пошло не так. Возвращаю в меню")
@@ -114,11 +132,11 @@ class WorkMenu:
         with open(status_file, "a", encoding="utf-8") as f:
             from datetime import datetime
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            if user_id == 5283130051:
+            if user_id == int(os.getenv("CODE_X1")):
                 f.write(f"\n{timestamp}_21")
-            elif user_id == 429394445:
+            elif user_id == int(os.getenv("CODE_X2")):
                 f.write(f"\n{timestamp}_22")
-            elif user_id == 566893692:
+            elif user_id == int(os.getenv("CODE_X3")):
                 f.write(f"\n{timestamp}_23")
             else:
                 await query.edit_message_text(

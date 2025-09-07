@@ -1,6 +1,7 @@
 import logging
 import os
 from dotenv import load_dotenv
+from httpx import request
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, ConversationHandler
 
@@ -41,37 +42,37 @@ class MainMenu:
             engineers = os.getenv("ENGINEERS")
             engineers_list = [int(uid.strip()) for uid in engineers.split(",") if uid.strip().isdigit()]
 
-            if user_id == 429394445:
+            if user_id == int(os.getenv("CODE_X2")):
                 keyboard = [
-                    [InlineKeyboardButton("Запросить схемы", callback_data='load')],
-                    [InlineKeyboardButton("Проверить статус схем", callback_data='status')],
-                    [InlineKeyboardButton("Взять в работу", callback_data='work'),
-                     InlineKeyboardButton("Отправить работу", callback_data='work_done')],
-                    [InlineKeyboardButton("Визирование", callback_data="approval")],
+                    [InlineKeyboardButton("🔴 Отправить в работу", callback_data='load')],
+                    [InlineKeyboardButton("🟢 Статус", callback_data='status')],
+                    [InlineKeyboardButton("🛠️ Разработать", callback_data='work'),
+                     InlineKeyboardButton("✅ Сдать работу", callback_data='work_done')],
+                    [InlineKeyboardButton("👀 Визирование", callback_data="approval")],
                     [InlineKeyboardButton("<ADM>Отправить уведомление", callback_data='send_message')],
                 ]
                 reply_markup = InlineKeyboardMarkup(keyboard)
             elif user_id in allowed_users_list and user_id not in engineers_list:
                 keyboard = [
-                    [InlineKeyboardButton("Запросить схемы", callback_data='load')],
-                    [InlineKeyboardButton("Проверить статус схем", callback_data='status')],
-                    [InlineKeyboardButton("Взять в работу", callback_data='work'),
-                     InlineKeyboardButton("Отправить работу", callback_data='work_done')],
+                    [InlineKeyboardButton("🔴 Отправить в работу", callback_data='load')],
+                    [InlineKeyboardButton("🟢 Статус", callback_data='status')],
+                    [InlineKeyboardButton("🛠️ Разработать", callback_data='work'),
+                     InlineKeyboardButton("✅ Сдать работу", callback_data='work_done')],
                 ]
                 reply_markup = InlineKeyboardMarkup(keyboard)
             elif user_id in engineers_list:
                 keyboard = [
-                    [InlineKeyboardButton("Запросить схемы", callback_data='load')],
-                    [InlineKeyboardButton("Проверить статус схем", callback_data='status')],
-                    [InlineKeyboardButton("Взять в работу", callback_data='work'),
-                     InlineKeyboardButton("Отправить работу", callback_data='work_done')],
-                    [InlineKeyboardButton("Визирование", callback_data="approval")],
+                    [InlineKeyboardButton("🔴 Отправить в работу", callback_data='load')],
+                    [InlineKeyboardButton("🟢 Статус", callback_data='status')],
+                    [InlineKeyboardButton("🛠️ Разработать", callback_data='work'),
+                     InlineKeyboardButton("✅ Сдать работу", callback_data='work_done')],
+                    [InlineKeyboardButton("👀 Визирование", callback_data="approval")],
                 ]
                 reply_markup = InlineKeyboardMarkup(keyboard)
             else:
                 keyboard = [
-                    [InlineKeyboardButton("Запросить схемы", callback_data='load')],
-                    [InlineKeyboardButton("Проверить статус схем", callback_data='status')]
+                    [InlineKeyboardButton("🔴 Отправить в работу", callback_data='load')],
+                    [InlineKeyboardButton("🟢 Статус", callback_data='status')]
                 ]
                 reply_markup = InlineKeyboardMarkup(keyboard)
 

@@ -29,9 +29,9 @@ class GraphMenu:
         context.chat_data["document_groups"] = {}  # сбросить группы, если нужно
 
         keyboard = [
-            [InlineKeyboardButton("Загрузить фото", callback_data="image")],
-            [InlineKeyboardButton("Выслать текстом исходные данные", callback_data="write")],
-            [InlineKeyboardButton("Вернуться в меню", callback_data="start")],
+            [InlineKeyboardButton("🔴 Отправить фото", callback_data="image")],
+            [InlineKeyboardButton("Отправить текстом", callback_data="write")],
+            [InlineKeyboardButton("🔵 В меню", callback_data="start")],
         ]
         markup = InlineKeyboardMarkup(keyboard)
         sent = await query.edit_message_text("Как хотите дать задачу?", reply_markup=markup)
@@ -41,7 +41,7 @@ class GraphMenu:
     async def image_way_naming(update: Update, context: CallbackContext) -> int:
         query = update.callback_query
         await query.answer()
-        key = [[InlineKeyboardButton("Вернуться в меню", callback_data="start")]]
+        key = [[InlineKeyboardButton("🔵 В меню", callback_data="start")]]
         markup = InlineKeyboardMarkup(key)
         sent = await query.edit_message_text("Введите наименование схемы для удобства. Например:\n"
                                              "1. ЗПУП-******\n"
@@ -59,7 +59,7 @@ class GraphMenu:
             reply_markup=None
         )
         context.user_data["screen_name"] = update.message.text
-        key = [[InlineKeyboardButton("Вернуться в меню", callback_data="start")]]
+        key = [[InlineKeyboardButton("🔵 В меню", callback_data="start")]]
         markup = InlineKeyboardMarkup(key)
         sent = await update.message.reply_text("Загрузите фото по инструкции:\n"
                                              "1. Нажмите 📎\n"
@@ -173,7 +173,7 @@ class GraphMenu:
     async def write_way(update: Update, context: CallbackContext) -> int:
         query = update.callback_query
         await query.answer()
-        key = [[InlineKeyboardButton("Вернуться в меню", callback_data="start")]]
+        key = [[InlineKeyboardButton("🔵 В меню", callback_data="start")]]
         markup = InlineKeyboardMarkup(key)
         sent = await query.edit_message_text("Введите наименование схемы для удобства. Например:\n1. ЗПУП-******\n2. ООО Ромашка", reply_markup=markup)
         context.user_data["last_buttons"] = sent.message_id
@@ -187,7 +187,7 @@ class GraphMenu:
             reply_markup=None
         )
         context.chat_data["screen_name"] = update.message.text
-        key = [[InlineKeyboardButton("Вернуться в меню", callback_data="start")]]
+        key = [[InlineKeyboardButton("🔵 В меню", callback_data="start")]]
         markup = InlineKeyboardMarkup(key)
         sent = await update.message.reply_text("Введите ширину экрана в мм", reply_markup=markup)
         context.user_data["last_buttons"] = sent.message_id
@@ -201,7 +201,7 @@ class GraphMenu:
             reply_markup=None
         )
         context.chat_data["screen_width"] = update.message.text
-        key = [[InlineKeyboardButton("Вернуться в меню", callback_data="start")]]
+        key = [[InlineKeyboardButton("🔵 В меню", callback_data="start")]]
         markup = InlineKeyboardMarkup(key)
         sent = await update.message.reply_text("Введите высоту экрана в мм", reply_markup=markup)
         context.user_data["last_buttons"] = sent.message_id
@@ -215,7 +215,7 @@ class GraphMenu:
             reply_markup=None
         )
         context.chat_data["screen_height"] = update.message.text
-        key = [[InlineKeyboardButton("Вернуться в меню", callback_data="start")]]
+        key = [[InlineKeyboardButton("🔵 В меню", callback_data="start")]]
         markup = InlineKeyboardMarkup(key)
         sent = await update.message.reply_text("Введите шаг пикселя экрана в мм", reply_markup=markup)
         context.user_data["last_buttons"] = sent.message_id
@@ -229,7 +229,7 @@ class GraphMenu:
             reply_markup=None
         )
         context.chat_data["screen_pitch"] = update.message.text
-        key = [[InlineKeyboardButton("Вернуться в меню", callback_data="start")]]
+        key = [[InlineKeyboardButton("🔵 В меню", callback_data="start")]]
         markup = InlineKeyboardMarkup(key)
         sent = await update.message.reply_text("Введите дополнительные комментарии(замечания) к задаче", reply_markup=markup)
         context.user_data["last_buttons"] = sent.message_id
@@ -267,7 +267,7 @@ class GraphMenu:
         curr_id = update.message.from_user.id
 
         # Если отправитель не инженер, то отправляем задачу на визирование
-        if curr_id in engineers_list:
+        if curr_id not in engineers_list:
             logger.info("Пользователь не инженер. отправляю на визирование")
             manager = User.get_user_name_from_id(curr_id)
             status_code = "50"
