@@ -262,7 +262,7 @@ class Checker:
                 logger.exception(f"Ошибка при обработке схемы {task}: {e}")
                 text += f"Ошибка при чтении схемы {task}\n\n"
         text += "\n━━━"
-        if text.strip() != "Нашел ваши схемы:":
+        if text.strip() != "Нашел ваши схемы:\n\n\n━━━":
             return [text, tag]
         else:
             return ["Схемы не найдены", None]
