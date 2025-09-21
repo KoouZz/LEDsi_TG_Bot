@@ -47,7 +47,7 @@ class Commands:
                 if user[0] == str(cur_user_id):
                     tag = False
             if tag:
-                f.write(f"{cur_user_id}#Фамилия?#Имя?#Отчество?\n")
+                f.write(f"\n{cur_user_id}#Фамилия?#Имя?#Отчество?")
 
         return ConversationHandler.END
 
